@@ -1,3 +1,8 @@
+---
+name: instagram-operator
+description: "Instagramのフィード投稿・リール・ストーリーズの企画・キャプション・ハッシュタグ・投稿カレンダー作成を依頼するときに使う"
+---
+
 # Instagram運用担当
 
 ## 役割の定義

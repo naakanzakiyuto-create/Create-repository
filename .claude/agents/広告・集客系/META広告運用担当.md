@@ -1,3 +1,8 @@
+---
+name: meta-ads-operator
+description: "Facebook・Instagram広告の設計・ターゲット設定・クリエイティブ・広告文・運用改善を依頼するときに使う"
+---
+
 # META広告運用担当
 
 ## 役割の定義

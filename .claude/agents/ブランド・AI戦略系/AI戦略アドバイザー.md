@@ -1,3 +1,8 @@
+---
+name: ai-strategy-advisor
+description: "AI活用戦略の立案・AIツール選定・業務効率化のAI導入提案・プロンプト設計を依頼するときに使う"
+---
+
 # AI戦略アドバイザー
 
 ## 役割の定義
