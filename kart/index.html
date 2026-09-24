@@ -31,7 +31,7 @@ body{font-family:var(--body);-webkit-user-select:none;user-select:none;-webkit-t
 
 /* ---------- HUD ---------- */
 .outline{paint-order:stroke fill;-webkit-text-stroke:6px var(--navy);text-shadow:0 3px 0 var(--navy)}
-#hud{position:absolute;inset:0;pointer-events:none;
+#hud{position:absolute;inset:0;pointer-events:none;z-index:2;
   padding:calc(env(safe-area-inset-top,0px) + 10px) calc(env(safe-area-inset-right,0px) + 14px) 0 calc(env(safe-area-inset-left,0px) + 14px)}
 .hud-top{display:grid;grid-template-columns:auto auto 1fr auto;align-items:start;gap:12px}
 .chip{font-family:var(--display);font-size:22px;line-height:1;letter-spacing:.02em}
@@ -66,7 +66,19 @@ body{font-family:var(--body);-webkit-user-select:none;user-select:none;-webkit-t
   display:grid;place-items:center;font-size:30px;line-height:1;transition:transform .05s}
 .btn span{font-size:12px;letter-spacing:.08em;font-family:var(--body);font-weight:800;display:block;margin-top:2px}
 .btn.on{transform:scale(.93);background:rgba(255,210,63,.75);color:var(--navy);box-shadow:inset 0 0 0 3px #fff}
-.btn.steer{width:92px;height:92px;border-radius:26px;font-size:40px}
+.pad.left{width:1px}
+#steerZone{position:absolute;left:0;bottom:0;width:50%;height:72%;touch-action:none;pointer-events:auto}
+.stick{position:absolute;left:calc(env(safe-area-inset-left,0px) + 24px);bottom:calc(env(safe-area-inset-bottom,0px) + 28px);
+  width:176px;height:76px;margin:0;border-radius:999px;background:rgba(27,31,75,.45);box-shadow:inset 0 0 0 3px rgba(255,255,255,.7);
+  pointer-events:none;transition:opacity .15s}
+.stick::before,.stick::after{position:absolute;top:50%;transform:translateY(-50%);font-size:20px;color:rgba(255,255,255,.75)}
+.stick::before{content:"◀";left:14px}
+.stick::after{content:"▶";right:14px}
+.stick.active{background:rgba(27,31,75,.3);transition:none}
+.knob{position:absolute;left:50%;top:50%;width:66px;height:66px;margin:-33px 0 0 -33px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,#ffe27a 45%,#ffc21a);box-shadow:0 4px 0 rgba(0,0,0,.3),inset 0 0 0 3px #fff}
+.stick-hint{position:absolute;left:0;right:0;top:-26px;text-align:center;font-size:12px;font-weight:800;letter-spacing:.08em;color:#fff;opacity:.85}
+.stick.active .stick-hint{display:none}
 .btn.drift{width:100px;height:100px;background:rgba(255,79,94,.62);grid-row:2;grid-column:2;font-size:18px}
 .btn.drift.on{background:var(--sun)}
 .btn.brake{width:64px;height:64px;font-size:14px;grid-row:2;grid-column:1}
@@ -74,13 +86,13 @@ body{font-family:var(--body);-webkit-user-select:none;user-select:none;-webkit-t
 .btn:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
 @media (pointer:fine) and (hover:hover){ #controls{opacity:.35} #controls:hover{opacity:1} }
 @media (orientation:portrait){
-  .btn.steer{width:80px;height:80px}
+  .stick{width:150px}
   .btn.drift{width:92px;height:92px}
   .pos{font-size:44px}
 }
 
 /* ---------- Overlays ---------- */
-.overlay{position:absolute;inset:0;display:grid;place-items:center;overflow:auto;
+.overlay{position:absolute;inset:0;z-index:3;display:grid;place-items:center;overflow:auto;
   padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px);
   background:linear-gradient(180deg,rgba(27,31,75,.35),rgba(27,31,75,.88) 70%)}
 .card{width:min(460px,100%);text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
@@ -140,11 +152,11 @@ body{font-family:var(--body);-webkit-user-select:none;user-select:none;-webkit-t
     <div id="wrong" class="outline" hidden>ぎゃくそう！</div>
   </div>
 
+  <div id="steerZone" hidden aria-label="ここを指で左右にスライドしてハンドル操作">
+    <div class="stick" id="stick"><div class="stick-hint">指でスライド</div><div class="knob" id="knob"></div></div>
+  </div>
   <div id="controls" hidden>
-    <div class="pad left">
-      <button class="btn steer" data-btn="left" aria-label="左">◀</button>
-      <button class="btn steer" data-btn="right" aria-label="右">▶</button>
-    </div>
+    <div class="pad left"></div>
     <div class="pad right">
       <button class="btn item" data-btn="item" aria-label="アイテムを使う">アイテム</button>
       <button class="btn brake" data-btn="brake" aria-label="ブレーキ">ブレーキ</button>
@@ -157,7 +169,7 @@ body{font-family:var(--body);-webkit-user-select:none;user-select:none;-webkit-t
       <div class="course">COURSE 1 ・ ひまわりサーキット</div>
       <h1 class="logo">ひまわり<br>カートGP<span>3 LAPS · 6 RACERS</span></h1>
       <div class="howto">
-        <b>◀ ▶</b><div>ハンドル。アクセルは自動です。</div>
+        <b>ハンドル</b><div>画面の左半分を指でさわって左右にスライド。ずらした分だけ曲がります。アクセルは自動です。</div>
         <b>ドリフト</b><div>曲がりながら長押し。火花が<span style="color:#7fd3ff">青</span>→<span style="color:#ffae3c">オレンジ</span>になったら離すとダッシュ！</div>
         <b>？ボックス</b><div>キノコ（加速）・バナナ・こうら が出る。<b style="font-family:inherit">アイテム</b>で使う。</div>
         <b>ダッシュ板</b><div>オレンジの矢印を踏むと加速。芝生に出ると遅くなるよ。</div>
@@ -510,7 +522,7 @@ addEventListener('keydown', e => {
   keys.add(e.code); syncInput();
 });
 addEventListener('keyup', e => { keys.delete(e.code); syncInput(); });
-addEventListener('blur', () => { keys.clear(); ptr.clear(); syncInput(); });
+addEventListener('blur', () => { keys.clear(); ptr.clear(); releaseSteer(); syncInput(); });
 
 const controls = $('controls');
 const btnAt = (x, y) => { const el = document.elementFromPoint(x, y); const b = el && el.closest && el.closest('[data-btn]'); return b ? b.dataset.btn : null; };
@@ -532,6 +544,42 @@ addEventListener('pointermove', e => {
 const endPtr = e => { if (ptr.delete(e.pointerId)) syncInput(); };
 addEventListener('pointerup', endPtr); addEventListener('pointercancel', endPtr);
 controls.addEventListener('contextmenu', e => e.preventDefault());
+
+// Analog steering: touch anywhere on the left half, slide sideways
+const zone = $('steerZone'), stick = $('stick'), knob = $('knob');
+const STICK_R = 52, DEAD = 5;
+let steerPtr = null, steerOx = 0, steerAxis = 0;
+function placeStick(x, y){
+  if (x == null){ stick.style.left = stick.style.top = stick.style.bottom = ''; return; }
+  const zr = zone.getBoundingClientRect(), w = stick.offsetWidth, h = stick.offsetHeight;
+  stick.style.left = clamp(x - zr.left - w / 2, 4, zr.width - w - 4) + 'px';
+  stick.style.top = clamp(y - zr.top - h / 2, 4, zr.height - h - 4) + 'px';
+  stick.style.bottom = 'auto';
+}
+function setSteerFrom(x){
+  let dx = x - steerOx;
+  // origin follows the finger past the edge, so reversing direction reacts instantly
+  if (dx > STICK_R){ steerOx = x - STICK_R; dx = STICK_R; }
+  else if (dx < -STICK_R){ steerOx = x + STICK_R; dx = -STICK_R; }
+  const m = Math.max(0, Math.abs(dx) - DEAD) / (STICK_R - DEAD);
+  steerAxis = Math.sign(dx) * Math.min(1, m);
+  knob.style.transform = `translateX(${dx}px)`;
+}
+function releaseSteer(){
+  steerPtr = null; steerAxis = 0; knob.style.transform = ''; stick.classList.remove('active'); placeStick(null);
+}
+zone.addEventListener('pointerdown', e => {
+  if (steerPtr !== null) return;
+  e.preventDefault(); audioInit();
+  steerPtr = e.pointerId; steerOx = e.clientX;
+  try { zone.setPointerCapture(e.pointerId); } catch (_) {}
+  stick.classList.add('active'); placeStick(e.clientX, e.clientY); setSteerFrom(e.clientX);
+});
+zone.addEventListener('pointermove', e => { if (e.pointerId === steerPtr) setSteerFrom(e.clientX); });
+const endSteer = e => { if (e.pointerId === steerPtr) releaseSteer(); };
+zone.addEventListener('pointerup', endSteer); zone.addEventListener('pointercancel', endSteer);
+zone.addEventListener('lostpointercapture', endSteer);
+zone.addEventListener('contextmenu', e => e.preventDefault());
 
 function syncInput(){
   const held = new Set(ptr.values());
@@ -646,7 +694,7 @@ function stepKart(k, inp, dt){
   }
 
   // steering (smoothed)
-  k.steer += (inp.steer - k.steer) * Math.min(1, dt * 9);
+  k.steer += (inp.steer - k.steer) * Math.min(1, dt * 16);
   const tf = clamp(k.speed / 70, -1, 1);
   if (k.drift){
     if (!inp.drift || k.speed < 90 || k.spin > 0){
@@ -784,7 +832,7 @@ function update(dt){
     let inp;
     if (k.cpu || k.finished) inp = aiInput(k, dt);
     else {
-      const steer = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+      const steer = steerPtr !== null ? steerAxis : (input.right ? 1 : 0) - (input.left ? 1 : 0);
       inp = { steer, drift: input.drift, brake: input.brake, cap: 1 };
     }
     stepKart(k, inp, dt);
@@ -1038,7 +1086,7 @@ function startRace(){
   resetRace();
   state = 'countdown'; countdown = 3.999;
   $('title').hidden = true; $('result').hidden = true; $('pause').hidden = true;
-  $('hud').hidden = false; $('controls').hidden = false;
+  $('hud').hidden = false; $('controls').hidden = false; $('steerZone').hidden = false;
   hudCache = {};
   flash('3', .8); beep(440, .15, 'square', .12);
 }
@@ -1046,7 +1094,7 @@ function startRace(){
 let prevState = null;
 function togglePause(){
   if (state === 'paused'){ state = prevState; $('pause').hidden = true; last = performance.now(); }
-  else if (state === 'race' || state === 'countdown' || state === 'finished'){ prevState = state; state = 'paused'; $('pause').hidden = false; ptr.clear(); keys.clear(); syncInput(); }
+  else if (state === 'race' || state === 'countdown' || state === 'finished'){ prevState = state; state = 'paused'; $('pause').hidden = false; ptr.clear(); keys.clear(); releaseSteer(); syncInput(); }
   updateEngine();
 }
 
@@ -1065,7 +1113,7 @@ function showResult(){
   $('resLaps').innerHTML += '<br>' + p.laps.map((t, i) => `LAP${i + 1} ${fmtTime(t)}`).join(' ・ ');
   $('resBoard').innerHTML = order.map((k, i) =>
     `<tr class="${k.cpu ? '' : 'me'}"><td>${i + 1}</td><td><span class="dot" style="background:${k.col}"></span>${k.name}</td><td>${k.finished ? fmtTime(k.finishTime) : '--:--.--'}</td></tr>`).join('');
-  $('result').hidden = false; $('controls').hidden = true;
+  $('result').hidden = false; $('controls').hidden = true; $('steerZone').hidden = true; releaseSteer();
   $('againBtn').focus({ preventScroll: true });
 }
 
