@@ -182,7 +182,7 @@ const ENEMIES = {
   wolf:     { hp:24,   spd:1.7,  armor:0, gold:5,   dmg:1,  r:.24 },
   golem:    { hp:120,  spd:.6,   armor:4, gold:12,  dmg:2,  r:.32 },
   bigslime: { hp:520,  spd:.65,  armor:2, gold:40,  dmg:5,  r:.42 },
-  dragon:   { hp:3400, spd:.45,  armor:5, gold:150, dmg:20, r:.5  },
+  dragon:   { hp:1400, spd:.45,  armor:5, gold:150, dmg:10, r:.5  },
 };
 // [type, count, gap(s)] groups per wave
 const WAVES = [
@@ -493,7 +493,7 @@ function impact(s){
   for (const e of G.enemies){
     if (e.hp > 0 && (e.pos[0] - s.tx) ** 2 + (e.pos[1] - s.ty) ** 2 <= s.splash * s.splash){
       hurt(e, s.dmg);
-      if (s.type === 'ice'){ e.slowT = 1.8; e.slowF = Math.max(e.slowF * (e.slowT > 0 ? 1 : 0), s.slow); }
+      if (s.type === 'ice'){ e.slowT = 1.8; e.slowF = Math.max(e.slowF, s.slow); }
     }
   }
   const col = s.type === 'ice' ? '#bfefff' : '#ffb04d';
@@ -694,6 +694,8 @@ function towerIcon(type, lvl = 1){
   return iconCache[key];
 }
 
+let panelHTML = '';
+function paint(html){ if (html !== panelHTML){ panelHTML = html; panel.innerHTML = html; } }
 function setPanel(){
   if (!G) return;
   const tw = G.sel && towerAt(G.sel.c, G.sel.r);
@@ -705,7 +707,7 @@ function setPanel(){
                : def.chain ? ['連鎖', stat(tw, 'chain') + '体', nxt('chain', v => v + '体')]
                : def.splash ? ['爆風', f1(stat(tw, 'splash')), nxt('splash', f1)]
                : ['連射', f1(stat(tw, 'rate')) + '/秒', nxt('rate', v => v.toFixed(1) + '/秒')];
-    panel.innerHTML = `
+    paint(`
       <div class="head"><img src="${towerIcon(tw.type, tw.lvl)}" width="40" height="40" alt="">
         <h2>${def.name}<small>Lv ${tw.lvl}${max ? ' (MAX)' : ''}</small></h2>
         <button class="close" data-a="close" aria-label="閉じる">✕</button></div>
@@ -717,28 +719,28 @@ function setPanel(){
       <div class="row">
         <button class="big" data-a="up" ${max || G.gold < next ? 'disabled' : ''}>${max ? '最大レベル' : `強化 <small>🪙${next}</small>`}</button>
         <button class="big sell" data-a="sell">売る <small>+${Math.floor(tw.spent * .7)}</small></button>
-      </div>`;
+      </div>`);
   } else if (G.sel){
     const p = G.pick;
-    panel.innerHTML = `
+    paint(`
       <div class="head"><h2>タワーを建てる</h2><button class="close" data-a="close" aria-label="閉じる">✕</button></div>
       <div class="cards">${TOWER_KEYS.map(k => `
         <button class="card ${p === k ? 'sel' : ''}" data-a="pick" data-t="${k}" ${G.gold < TOWERS[k].cost[0] ? 'disabled' : ''}>
           <img src="${towerIcon(k)}" width="44" height="44" alt=""><b>${TOWERS[k].name}</b><span>🪙${TOWERS[k].cost[0]}</span>
         </button>`).join('')}</div>
-      <p class="desc">${p ? `${TOWERS[p].desc}<br><b style="color:var(--gold)">もう一度タップで建設！</b>` : 'タワーを選ぶと、とどく範囲が盤面に表示されます。'}</p>`;
+      <p class="desc">${p ? `${TOWERS[p].desc}<br><b style="color:var(--gold)">もう一度タップで建設！</b>` : 'タワーを選ぶと、とどく範囲が盤面に表示されます。'}</p>`);
   } else {
     const inWave = G.queue.length > 0 || G.enemies.length > 0;
     const done = G.wave >= MAX_WAVE;
     const label = done ? 'さいごのウェーブ中' : inWave ? `次のウェーブを呼ぶ <small>+${10 + G.wave + 1}🪙</small>` : `ウェーブ ${G.wave + 1} 開始`;
     const nextW = WAVES[G.wave];
     const preview = nextW ? nextW.map(([t, n]) => `${{ slime:'スライム', wolf:'ウルフ', golem:'ゴーレム', bigslime:'キングスライム', dragon:'ドラゴン' }[t]}×${n}`).join('・') : '';
-    panel.innerHTML = `
+    paint(`
       <p class="hint">${G.towers.length ? '草地をタップで建設、タワーをタップで強化・売却。' : 'まずは道のそばの草地をタップして、タワーを建てよう！'}${preview ? `<br>次：${preview}` : ''}</p>
       <div class="row">
         <button class="soft ${G.speed === 2 ? 'on' : ''}" data-a="speed" aria-label="速度切り替え">${G.speed === 2 ? '▶▶ 2倍' : '▶ 1倍'}</button>
         <button class="big" data-a="wave" ${done ? 'disabled' : ''}>${label}</button>
-      </div>`;
+      </div>`);
   }
 }
 panel.addEventListener('click', e => {
